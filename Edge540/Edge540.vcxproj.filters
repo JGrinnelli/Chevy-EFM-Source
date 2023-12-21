@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="Edge540.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\FM\wHumanCustomPhysicsAPI.h" />
+    <ClInclude Include="..\include\FM\wHumanCustomPhysicsAPI_ImplementationDeclare.h" />
+    <ClInclude Include="ccParametersAPI.h" />
+    <ClInclude Include="EDAPI.h" />
+    <ClInclude Include="Edge540.h" />
+    <ClInclude Include="ED_FM_TemplateAPI.h" />
+    <ClInclude Include="ED_FM_Utility.h" />
+    <ClInclude Include="Controls/Controls.h" />
+    <ClInclude Include="Aerodynamics/Aerodynamics.h" />
+    <ClInclude Include="Engine/Engine.h" />
+    <ClInclude Include="Cockpit/Cockpit.h" />
+    <ClInclude Include="Fuel/Fuel.h" />
+    <ClInclude Include="Electrical/Electrical.h" />
+    <ClInclude Include="Propeller/Propeller.h" />
+    <ClInclude Include="String and Sight/StringSights.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="LaunchSystem.h" />
+    <ClInclude Include="BobbleHead.h" />
+    <ClInclude Include="Parachute.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+</Project>

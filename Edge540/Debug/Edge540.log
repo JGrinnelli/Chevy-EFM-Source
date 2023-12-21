@@ -1,0 +1,4 @@
+﻿C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\VCTargets\Microsoft.CppBuild.targets(377,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
+  LINK : ..\..\..\bin\x86_64\vc100.debug\Edge540.dll not found or not built by the last incremental link; performing full link
+     Creating library ..\..\..\bin\x86_64\vc100.debug\Edge540.lib and object ..\..\..\bin\x86_64\vc100.debug\Edge540.exp
+  Edge540.vcxproj -> C:\Users\Brandon\Desktop\DXM\EFM\Edge540\..\..\..\bin\x86_64\vc100.debug\Edge540.dll
