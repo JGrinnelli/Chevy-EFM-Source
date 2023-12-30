@@ -1,8 +1,10 @@
 ﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(503,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
 C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(517,5): warning MSB8028: The intermediate directory (x64\Release\) contains files shared from another project (Edge540.vcxproj, Fan Racer.vcxproj, Shuttle.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  dllmain.cpp
+F:\WORK DRIVE\Chevy-EFM-Source\Edge540\dllmain.cpp(21,4): warning C4996: 'freopen': This function or variable may be unsafe. Consider using freopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
      Creating library C:\Users\JGrin\Saved Games\DCS.openbeta\Mods\aircraft\Chevy-Silverado\bin\CHEVY.real.lib and object C:\Users\JGrin\Saved Games\DCS.openbeta\Mods\aircraft\Chevy-Silverado\bin\CHEVY.real.exp
   Generating code
-  1 of 178 functions ( 0.6%) were compiled, the rest were copied from previous compilation.
+  1 of 179 functions ( 0.6%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
     0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code

@@ -47,6 +47,8 @@ double trim_bias = 0;
 double smoke_SRB = 0;
 double smoke_MAIN = 0;
 
+
+
 void ColdLaunchSystem()
 {
 	LaunchCountdown = false;

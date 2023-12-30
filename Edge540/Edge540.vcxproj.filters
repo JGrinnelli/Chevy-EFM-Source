@@ -26,6 +26,7 @@
     <ClInclude Include="LaunchSystem.h" />
     <ClInclude Include="BobbleHead.h" />
     <ClInclude Include="Parachute.h" />
+    <ClInclude Include="Silverado.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

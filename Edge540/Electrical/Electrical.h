@@ -72,6 +72,7 @@ double updateBrakelight(double power, double brake)
 
 	return brakeLight;
 }
+
 double updateHazzard(double power, double hazzard, double dt)
 {
 	if (hazzard)

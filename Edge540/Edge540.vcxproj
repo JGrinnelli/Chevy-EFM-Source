@@ -167,6 +167,7 @@
     <ClInclude Include="LaunchSystem.h" />
     <ClInclude Include="Parachute.h" />
     <ClInclude Include="Propeller/Propeller.h" />
+    <ClInclude Include="Silverado.h" />
     <ClInclude Include="String and Sight/StringSights.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />

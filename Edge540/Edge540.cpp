@@ -22,6 +22,8 @@ using namespace std;
 #include "String and Sight/StringSights.h"
 #include "LaunchSystem.h"
 #include "BobbleHead.h"
+#include "Silverado.h"
+
 //#include"Parachute.h";
 
 // EDAPI 
@@ -38,12 +40,12 @@ double	    Mx						 = 0.005865;
 double		My						 = 0.003632;
 double		Mz						 = 0.00304019;
 
-double		throttle				 = 0.0;
+//double		throttle				 = 0.0;
 double		latStickInput			 = 0.0;
 double		longStickInput		     = 0.0;
-double		pedalInput				 = 0.0;
 
-double		internal_fuel			 = 0;
+
+
 double		fuel_consumption_since_last_time  = 0;
 double		speed_of_sound			 = 320;
 double		mach					 = 0;
@@ -163,8 +165,8 @@ double		L_roll					= 0.0;
 double		N_yaw					= 0.0;
 
 // Breaks
-double BrakeLeft					= 0.0;
-double BrakeRight					= 0.0;
+//double BrakeLeft					= 0.0;
+//double BrakeRight					= 0.0;
 
 // Engine
 double nuPropEff				    = 1.20;				// Double check this
@@ -256,21 +258,30 @@ double NAV_light_state = 0.0;
 double FLOOD_light_state = 0.0;
 double FLOOD_color_state = 0.0;
 double GAUGE_light_state = 0.0;
-
+double hazzard_light = 0.0;
 double dome_light = 0;
 double headlight = 0;
-double hazzard_light = 0;
+
 double Key_SW = 0;
 double Hook_SW = 0;
 double Drag_SW = 0;
+double Shifter_SW = 0.0;
+
+double door_handle_FL = 0.0;
 
 double longStickInputArg = 0;
 double latStickInputArg = 0;
-double pedalInputArg = 0;
+
 
 double radio_opacity = 0;
 
 double radar_alt = 0;
+
+double test = 0.0;
+
+bool doors_unlocked = true;
+
+double door_FL_open = 0.0;
 
 // Params
 //Instantiate API object
@@ -453,7 +464,7 @@ void   ed_fm_set_internal_fuel(double fuel)
 	}
 
 	internal_fuel = fuel;
-	cout << "ed_fm_set_internal_fuel: " << fuel << endl;
+	//cout << "ed_fm_set_internal_fuel: " << fuel << endl;
 }
 /*
 get internal fuel volume
@@ -465,11 +476,12 @@ double ed_fm_get_internal_fuel()
 }
 void simulate_fuel_consumption(double dt, double fuelFLow, double fuelSelect)
 {
-	if (Ignition)
+	if (ignition)
 	{
-		internal_fuel -= 0.02;
+		internal_fuel -= 0.0002; //0.02
 		internal_fuel = limit(internal_fuel, 0, 1000);
 	}
+
 	//cout << "simulate_fuel_consumption: " << internal_fuel << endl;
 	//New Unlimited Fuel
 	//if (unlimited_fuel)
@@ -518,8 +530,8 @@ void simulate_fuel_consumption(double dt, double fuelFLow, double fuelSelect)
 
 void ed_fm_add_local_force(double & x,double &y,double &z,double & pos_x,double & pos_y,double & pos_z)
 {
-	x = common_force.x + throttle * 1000; // 1000 = 80kts
-	y = common_force.y;
+	x = common_force.x + engine_power; //throttle * 3000; // 1000 = 80kts
+	y = common_force.y; //upward thrust
 	z = common_force.z;
 	pos_x = center_of_gravity.x;
 	pos_y = center_of_gravity.y;
@@ -582,6 +594,8 @@ void ed_fm_cold_start()
 
 	gear_pos	= 0;
 	gear_target = 0;
+
+	dimmer_pos = 0.0;
 }
 void ed_fm_hot_start()
 {
@@ -621,6 +635,8 @@ void ed_fm_hot_start()
 	
 	gear_pos	= 0;
 	gear_target = 0;
+
+	dimmer_pos = 1.0;
 }
 void ed_fm_hot_start_in_air()
 {
@@ -655,6 +671,8 @@ void ed_fm_hot_start_in_air()
 
 	gear_pos	= 0;
 	gear_target = 0;
+
+	dimmer_pos = 1.0;
 }
 
 // Start of body simulation
@@ -705,31 +723,48 @@ void ed_fm_simulate(double dt)
 	V_propWind = 130;
 	}
 
-	normalizeSRB(internal_fuel);
-	normalizeMFT(internal_fuel);
+	updateDoors();
+	updateCanopyPos();
+	updateShifter();
+	updateHazzardLights();
+	updateBrakeLights();
+	updateHeadlightState();
+	updateDimmer();
+	updateBeams();
+	updateSteering();
+	updateFuel();
+	updateOil();
 
-	updateGear();
-	updatetheClock(dt);
+	speedo = indicated_airspeed * 1.852;
 
-	updateFlameLengthMain(dt);
-	updateFlamePulseMain(dt);
+	//cout << speedo << endl;
 
-	updateFlameLengthSRB (dt);
-	updateFlamePulseSRB	 (dt);
+	//normalizeSRB(internal_fuel);
+	//normalizeMFT(internal_fuel);
 
-	updateLaunchStatus();
+	//updateGear();
+	//updatetheClock(dt);
+
+	//updateFlameLengthMain(dt);
+	//updateFlamePulseMain(dt);
+
+	//updateFlameLengthSRB (dt);
+	//updateFlamePulseSRB	 (dt);
+
+	//updateLaunchStatus();
+
 	//updateRocketStage();
 	//updateLaunchTrim(trim_bias,pitch_data);
 	//updateBobbleRoll();
+
 	updateBobblePitch();
 
-	updateHeadlights(MASTER_SW, headlight);
+	//updateHeadlights(MASTER_SW, headlight);
 	updateBrakelight(MASTER_SW, BrakeLeft);
 	updateHazzard(MASTER_SW, hazzard_light, dt);
 	updateDomelights(MASTER_SW, dome_light);
 
-	updateHook(MASTER_SW, Hook_SW);
-	
+	//updateHook(MASTER_SW, Hook_SW);
 	//UpdateChutePitch();
 	//updateDragChute(Drag_SW,indicated_airspeed);
 	//updateChuteRoll();
@@ -739,7 +774,7 @@ void ed_fm_simulate(double dt)
 	API.setParam(FLAME_LENGTH_SRB, flame_length_R);
 	API.setParam(FLAME_PULSE_MAIN, flame_pulse_M);
 	API.setParam(FLAME_PULSE_SRB, flame_pulse_R);
-	API.setParam(RADIO_OPACITY, MASTER_SW);
+	API.setParam(RADIO_OPACITY, static_cast<double>(acc));
 
 
 
@@ -775,7 +810,9 @@ void ed_fm_simulate(double dt)
 
 	// Engine
 	//thrust                = throttle * thrust_aval * nuPropEff;
+
 	updateRocket();
+
 	engineFuelPump          = update_enginePump(RPM);
 	ElectricBoostpsi        = update_electricPump(ElectricBoostOnOff);
 		Mixture = MixPos;
@@ -1071,12 +1108,13 @@ void ed_fm_set_command (int command, float value)
 	switch (command)
 	{
 	case inputs::JoystickThrottle:
-		if (Key_SW && radar_alt < 0.8)
-		{
-			throttle = 0.5 * (-value + 1.0);
-			cout << "THROTTLE: " << throttle << endl;
-		}
+		//if (Key_SW && radar_alt < 0.8)
+		//{
+		//	throttle = 0.5 * (-value + 1.0);
+		//	cout << "THROTTLE: " << throttle << endl;
+		//}
 		throttle = 0.5 * (-value + 1.0);
+		cout << "THROTTLE: " << throttle << endl;
 		break;
 	case inputs::JoystickPitch:
 		longStickInputArg = limit(value, -1.0, 1.0);
@@ -1095,110 +1133,157 @@ void ed_fm_set_command (int command, float value)
 		break;
 	case inputs::JoystickYaw:
 		pedalInputArg = limit(value, -1.0, 1.0);
-		if (PilotHasControl)
-		{
-			pedalInput = limit(value, -1.0, 1.0);
-		}
-		break;
-	case inputs::TrimUp:
-		//trim_bias = limit(trim_bias + 0.0002, -0.5, 0.5);
-		//cout << "TRIM: " << trim_bias << endl;
-		if (PilotHasControl)
-		{
-			trim_bias = limit(trim_bias + 0.0002, -0.5, 0.5);
-			cout << "TRIM: " << trim_bias << endl;
-		}
-		break;
-	case inputs::TrimDown:
-		//trim_bias = limit(trim_bias - 0.0002, -0.5, 0.5);
-		//cout << "TRIM: " << trim_bias << endl;
-		if (PilotHasControl)
-		{
-			trim_bias = limit(trim_bias - 0.0002, -0.5, 0.5);
-			cout << "TRIM: " << trim_bias << endl;
-		}
-		break;
-	case inputs::TrimNeutral:
-		if (PilotHasControl)
-		{
-			trim_bias = 0.0;
-			cout << "TRIM: " << trim_bias << endl;
-		}
+		pedalInput = limit(value, -1.0, 1.0);
 		break;
 	case inputs::WheelBrake:
 		BrakeLeft = 0.5 * (-value + 1.0);
 		BrakeRight = 0.5 * (-value + 1.0);
 		cout << "BRAKES LEFT: " << BrakeLeft << " BRAKES RIGHT: " << BrakeRight << endl;
 		break;
-	case inputs::LaunchPrep:
-		if (MASTER_SW)
+	case inputs::TurnLeft:
+		if (turnleft == 1.0)
 		{
-			cout << "LAUNCH PREP: " << gear_target << endl;
-			if (gear_target == 0)
-			{
-				gear_target = 1;
-				cout << "GEAR TARGET: " << gear_target << endl;
-			}
+			turnleft = 0.0;
+			steering_target = 0.0;
 		}
-		//else if (gear_target == 1)
-		//{
-		//	gear_target = 0;
-		//	cout << "GEAR TARGET: " << gear_target << endl;
-		//}
+		else
+		{
+			turnleft = 1.0;
+			steering_target = -1.0;
+		}
+		cout << "steering_target: " << steering_target << endl;
+		break;
+	case inputs::TurnRight:
+		if (turnright == 1.0)
+		{
+			turnright = 0.0;
+			steering_target = 0.0;
+		}
+		else
+		{
+			turnright = 1.0;
+			steering_target = 1.0;
+		}
+		cout << "steering_target: " << steering_target << endl;
+		break;
+	case inputs::Key:
+		key_pos = limit(value, -1, 1);
+		updateIgnition();
+		cout << "KEY: " << key_pos << endl;
+		break;
+	case inputs::Shifter:
+		shifter_pos = value * 100.0;//limit(value, 0, 1);
+		cout << "Shifter: " << shifter_pos << endl;
 		break;
 
-
-	case inputs::Master:
-		MASTER_SW = limit(value, 0, 1);
-		cout << "MASTER: " << MASTER_SW << endl;
-		break;
-	case inputs::FuelPump:
-		FUEL_SW = limit(value, 0, 1);
-		cout << "FUEL: " << FUEL_SW << endl;
-		break;
-	case inputs::SRB_ARM:
-		SRB_ARMED = limit(value, 0, 1);
-		cout << "SRB ARMED: " << SRB_ARMED << endl;
-		break;
-	case inputs::MFT_ARM:
-		MFT_ARMED = limit(value, 0, 1);
-		cout << "MFT ARMED: " << MFT_ARMED << endl;
+	case inputs::Blinker:
+		blinker_switch = limit(value, -1, 1);
+		if (value != 0.0) blinker_on = true;
+		cout << "HEADLIGHT: " << blinker_switch << endl;
 		break;
 
 	case inputs::Lights:
-		headlight = limit(value, 0, 1);
-		cout << "HEADLIGHT: " << headlight << endl;
+		headlight_switch = limit(value, 0, 1);
+		cout << "HEADLIGHT: " << headlight_switch << endl;
 		break;
-	case inputs::Dome:
-		dome_light = limit(value, 0, 1);
-		cout << "DOME: " << dome_light << endl;
+	case inputs::Dimmer:
+		dimmer_pos = value;
+		cout << "Dimmer: " << dimmer_pos << endl;
+		break;
+	case inputs::Highbeams:
+		if (highBeamFlash == 1.0) 
+		{
+			highBeamFlash = 0.0;
+			blinker_beams_pos = 0.0;
+		}
+		else
+		{
+			highBeamFlash = 1.0;
+			blinker_beams_pos = 1.0;
+		}
+		cout << "Highbeams: " << highBeamFlash << endl;
+		break;
+	case inputs::BeamToggle:
+		if (highBeamToggle == 1.0)
+		{
+			highBeamToggle = 0.0;
+			blinker_beams_pos = 0.0;
+		}
+		else
+		{
+			highBeamToggle = 1.0;
+			blinker_beams_pos = -1.0;
+		}
+		cout << "BeamToggle: " << highBeamToggle << endl;
 		break;
 	case inputs::Hazzard:
-		hazzard_light = limit(value, 0, 1);
-		cout << "HAZZARD: " << hazzard_light << endl;
+		hazzard_switch = limit(value, 0, 1);
+		if (value == 1.0) hazzard_on = true;
+		cout << "HAZZARD: " << hazzard_on << endl;
 		break;
 
-	case inputs::Key:
-		Key_SW = limit(value, 0, 1);
-		cout << "KEY: " << Key_SW << endl;
+	case inputs::Locks:
+		if (doors_unlocked) doors_unlocked = false;
+		else doors_unlocked = true;
 		break;
 
-	case inputs::Hook:
-		Hook_SW = limit(value, 0, 1);
-		cout << "HOOK: " << Hook_SW << endl;
-		break;
-	case inputs::Drag:
-		Drag_SW = limit(value, 0, 1);
-		cout << "CHUTE: " << Drag_SW << endl;
-		break;
-	case inputs::Countdown:
-		if (LaunchReady && gear_pos == 0.98)
+	case inputs::Door_FL:
+		//double Door_FL = limit(value, 0, 1);
+		if (doors_unlocked && value == 1.0)
 		{
-			LaunchCountdown = true;
-			cout << "LAUNCH" << endl;
+			if (driver_door_target == 1.0) driver_door_target = 0.0;
+			else driver_door_target = 1.0;
+			cout << "Driver Door Target: " << driver_door_target << endl;
 		}
 		break;
 
+	case inputs::Door_FR:
+		//double Door_FR = limit(value, 0, 1);
+		if (doors_unlocked && value == 1.0)
+		{
+			if (passenger_door_target == 1.0) passenger_door_target = 0.0;
+			else passenger_door_target = 1.0;
+			cout << "Passenger Door Target: " << passenger_door_target << endl;
+		}
+		break;
+
+	case inputs::Door_RL:
+		//double Door_RL = limit(value, 0, 1);
+		if (doors_unlocked && value == 1.0)
+		{
+			if (left_door_target == 1.0) left_door_target = 0.0;
+			else left_door_target = 1.0;
+			cout << "Left Door Target: " << left_door_target << endl;
+		}
+		break;
+
+	case inputs::Door_RR:
+		//double Door_RR = limit(value, 0, 1);
+		if (doors_unlocked && value == 1.0)
+		{
+			if (right_door_target == 1.0) right_door_target = 0.0;
+			else right_door_target = 1.0;
+			cout << "Right Door Target: " << right_door_target << endl;
+		}
+		break;
+
+	case inputs::Window_FL:
+		window_FL_pos = value;
+		break;
+	case inputs::Window_FR:
+		window_FR_pos = value;
+		break;
+	case inputs::Window_RL:
+		window_RL_pos = value;
+		break;
+	case inputs::Window_RR:
+		window_RR_pos = value;
+		break;
+	case inputs::Throttle:
+		if (throttle_key == 1.0) throttle_key = 0.0;
+		else throttle_key = 1.0;
+		cout << "Throttle Key: " << throttle_key << endl;
+		break;
 	}
 }						
 
@@ -1273,6 +1358,32 @@ double ed_fm_get_external_fuel ()
 //ed_fm_set_draw_args_v2(float* array, size_t size);
 void ed_fm_set_draw_args_v2(float* array, size_t size)//ed_fm_set_draw_args (EdDrawArgument * drawargs,size_t size)
 {
+	array[28] = (float)(SRBarg);//for flame and sound
+	array[29] = (float)(RocketArg);//for flame and sound
+
+	array[38] = (float)(window_canopy_pos);  //force set closed 
+
+	array[200] = (float)(brakeLights);
+	array[201] = (float)(headlight_animation);
+
+	array[202] = (float)(lowBeams);
+	array[203] = (float)(hiBeams);
+
+	array[204] = (float)(blinkerLeft);
+	array[205] = (float)(blinkerRight);
+
+	array[210] = (float)(driver_door_pos);
+	array[211] = (float)(passenger_door_pos);
+	array[212] = (float)(left_door_pos);
+	array[213] = (float)(right_door_pos);
+
+	array[214] = (float)(window_FL_pos);
+	array[215] = (float)(window_FR_pos);
+	array[216] = (float)(window_RL_pos);
+	array[217] = (float)(window_RR_pos);
+
+
+
 
 	//data[27] = (float)(throttle);
 	//data[28] = (float)(throttle);
@@ -1281,32 +1392,31 @@ void ed_fm_set_draw_args_v2(float* array, size_t size)//ed_fm_set_draw_args (EdD
 	
 	//drawargs[1].f = (float)(1); // was * 3
 
-	array[11]  = (float)(-latStickInput); // was * 3
-	array[12]  = (float)(latStickInput); // was * 3
-	array[13]  = (float)(longStickInput); // was * 3
-	array[14]  = (float)(-pedalInput); // was * 3
+	//array[11]  = (float)(-latStickInput); // was * 3
+	//array[12]  = (float)(latStickInput); // was * 3
+	//array[13]  = (float)(longStickInput); // was * 3
+	//array[14]  = (float)(-pedalInput); // was * 3
 
-	array[25] = (float)(hook_pos);//HOOK
+	//array[25] = (float)(hook_pos);//HOOK
 
-	array[28]  = (float)(SRBarg);//for flame and sound
-	array[29]  = (float)(RocketArg);//for flame and sound
+
 
 	//array[35] = (float)(deploy_pos);  //force set closed 
 	//array[36] = (float)(chute_pitch);  //force set closed 
 	//array[37] = (float)(chute_roll);  //force set closed 
 
-	array[38]  = (float)(0);  //force set closed 
 
-	array[400] = (float)(0);  //force set due to HAB baloon rotation for flame
-	array[404] = (float)(flame_length_M);
-	array[406] = (float)(flame_pulse_M);
 
-	array[405] = (float)(flame_length_R);
-	array[407] = (float)(flame_pulse_R);
+	//array[400] = (float)(0);  //force set due to HAB baloon rotation for flame
+	//array[404] = (float)(flame_length_M);
+	//array[406] = (float)(flame_pulse_M);
 
-	array[415] = (float)(headlight_state);
-	array[416] = (float)(hazzard_state);
-	array[417] = (float)(brakeLight);
+	//array[405] = (float)(flame_length_R);
+	//array[407] = (float)(flame_pulse_R);
+
+	//array[415] = (float)(headlight_state);
+	//array[416] = (float)(hazzard_state);
+	//array[417] = (float)(brakeLight);
 
 
 	//drawargs[15].f	 = (float)(trim_bias); // was * 10
@@ -1334,20 +1444,38 @@ void ed_fm_set_draw_args_v2(float* array, size_t size)//ed_fm_set_draw_args (EdD
 void ed_fm_set_fc3_cockpit_draw_args_v2 (float* array, size_t size)
 {
 
-	array[1]		= (float)(-longStickInputArg);
-	array[2]		= (float)(latStickInputArg);
-	array[3]		= (float)(throttle);
-	array[20]		= (float)(pedalInputArg);
-	array[5]		= (float)(indicated_airspeed/230); //(indicated_airspeed/260)
+	//array[1]		= (float)(-longStickInputArg);
+	//array[2]		= (float)(latStickInputArg);
 
-	array[68]		= (float)(bobble_pitch);
-	array[69]		= (float)(bobble_roll);
+	array[1]		= (float)(driver_door_pos);
+	array[2]		= (float)(passenger_door_pos);
+	array[3]		= (float)(left_door_pos);
+	array[4]		= (float)(right_door_pos);
 
-	array[81]		= (float)(srb_fuel);
-	array[82]		= (float)(main_fuel);
-	array[83]		= (float)(srb_fuel);
+	array[10]		= (float)(pedalInputArg);
+	array[11]		= (float)(throttle);
+	array[12]		= (float)(BrakeLeft);
 
-	array[91]		= (float)(domelight_state);
+	array[17]		= (float)(blinker_beams_pos);
+
+	array[21]		= (float)(speedo / 200.0);
+	array[22]		= (float)(oil_pos / 550.0);
+	array[23]		= (float)(fuel_pos / 159.0);
+	array[24]		= (float)(battery_pos / 19.0);
+	array[25]		= (float)(temp_pos / 125.0);
+	
+	array[40]		= (float)(dimmer_animation);
+
+	//array[5]		= (float)(indicated_airspeed/230); //(indicated_airspeed/260)
+
+	//array[68]		= (float)(bobble_pitch);
+	//array[69]		= (float)(bobble_roll);
+
+	//array[81]		= (float)(srb_fuel);
+	//array[82]		= (float)(main_fuel);
+	//array[83]		= (float)(srb_fuel);
+
+	//array[91]		= (float)(domelight_state);
 
 	//data[10] 	= (float)(-trim_bias * 2.9733 + (1-MasterOnOff));
 	//data[12]    = (float)(PropPitch);
